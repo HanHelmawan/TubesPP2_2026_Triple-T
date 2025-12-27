@@ -12,6 +12,11 @@
             <version>9.5.0</version>
         </dependency>
     </dependencies>
+    <dependency>
+           <groupId>com.itextpdf</groupId>
+            <artifactId>layout</artifactId>
+            <version>7.2.5</version>
+        </dependency>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>24</maven.compiler.release>
