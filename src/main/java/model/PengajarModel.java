@@ -4,10 +4,22 @@
  */
 package model;
 
-/**
- *
- * @author raiha
- */
 public class PengajarModel {
-    
+    private String idPengajar;
+    private String nama;
+    private String bidang;
+
+    public PengajarModel(String idPengajar, String nama, String bidang) {
+        this.idPengajar = idPengajar;
+        this.nama = nama;
+        this.bidang = bidang;
+    }
+
+    // Getters and Setters
+    public String getIdPengajar() { return idPengajar; }
+    public void setIdPengajar(String idPengajar) { this.idPengajar = idPengajar; }
+    public String getNama() { return nama; }
+    public void setNama(String nama) { this.nama = nama; }
+    public String getBidang() { return bidang; }
+    public void setBidang(String bidang) { this.bidang = bidang; }
 }
