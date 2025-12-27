@@ -12,17 +12,17 @@ Sesuai dengan spesifikasi tugas besar, aplikasi ini memiliki fitur:
     * Input pendaftaran siswa baru.
     * Edit data profil siswa.
     * Hapus data siswa non-aktif.
-    * Lihat daftar siswa (JTable).
+    * Lihat daftar siswa.
 2.  **Manajemen Data Pengajar (CRUD)**
-    * Input data tentor baru.
-    * Update spesialisasi mata pelajaran tentor.
-    * Hapus data tentor.
-    * Lihat daftar tentor (JTable).
+    * Input data pengajar baru.
+    * Update spesialisasi mata pelajaran pengajar.
+    * Hapus data pengajar.
+    * Lihat daftar pengajar.
 3.  **Manajemen Jadwal & Kelas (CRUD)**
     * Input jadwal pelajaran baru.
     * Ubah waktu atau ruangan kelas.
     * Hapus jadwal.
-    * Lihat jadwal aktif (JTable).
+    * Lihat jadwal aktif.
 4.  **Fitur Tambahan**
     * **Export PDF:** Mencetak laporan data siswa/jadwal ke dokumen PDF.
     * **Validasi Input:** Memastikan data yang dimasukkan sesuai format (tidak boleh kosong, format angka, dll).
@@ -38,10 +38,10 @@ Kelompok kami terdiri dari 4 orang dengan pembagian tugas sebagai berikut agar s
 
 | Nama Anggota | NIM | Peran Utama | Rincian Tugas (Task Distribution) |
 | :--- | :--- | :--- | :--- |
-| **[Raihan Azzani Helmawan]** | [233040135] | **Team Leader** | 
-| **[Danny Lukman]** | [233040097] | **Programmer** |
-| **[Rama Sadea Putra]** | [233040122] | **Programmer** | 
-| **[M. Farrel Octora]** | [233040124] | **Programmer** | 
+| **Raihan Azzani Helmawan** | 233040135 | **Team Leader** | • Setup: Siapin Repo, `.gitignore`, & Library project. <br>• Database: Bikin file `DBConnections.java`. <br>• UI Utama: Bikin `MainFrame.java` (Menu & Navigasi). <br>• Git Master: Review & Merge kode tim ke branch main. |
+| **Danny Lukman** | 233040097 | **Programmer (Modul Siswa)** | • Model: `SiswaModel.java` (CRUD ke DB). <br>• View: Bikin Panel Form Input & Tabel Siswa. <br>• Controller: `SiswaController.java` (Logika tombol). <br>• Validasi: Pastikan input data siswa aman. |
+| **Rama Sadea Putra** | 233040122 | **Programmer (Modul Pengajar)** | • Model: `PengajarModel.java` (CRUD ke DB). <br>• View: Bikin Panel Form Input & Tabel Pengajar. <br>• Controller: `PengajarController.java` (Logika tombol). <br>• Validasi: Pastikan input data pengajar aman. |
+| **M. Farrel Octora** | 233040124 | **Programmer (Modul Jadwal & Laporan)** | • Model: `JadwalModel.java` (CRUD ke DB). <br>• View: Bikin Panel Form Input & Tabel Jadwal. <br>• Controller: `JadwalController.java`. <br>• Fitur PDF: Bikin class `PDFExport.java` buat cetak laporan. |
 
 
 ---
