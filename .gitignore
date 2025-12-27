@@ -1,0 +1,11 @@
+/build/
+/dist/
+/nbproject/private/
+/nbproject/Makefile-*.mk
+/nbproject/Package-*.bash
+nbproject/
+*.class
+*.apk
+*.jar
+.DS_Store
+Thumbs.db
