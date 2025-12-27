@@ -9,14 +9,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class JadwalPanel extends JFrame {
-    // --> Perbesar ukuran JTextField agar sejajar
-    private JTextField tfIdJadwal = new JTextField(15);
-    private JTextField tfIdPengajar = new JTextField(15);
-    private JTextField tfIdMapel = new JTextField(15);
-    private JTextField tfHari = new JTextField(15);
-    private JTextField tfJamMulai = new JTextField(15); // Untuk format jam
-    private JTextField tfJamSelesai = new JTextField(15); // Untuk format jam
-    // <--
+    // Field input sesuai model dan database
+    private JTextField tfIdJadwal = new JTextField(20);
+    private JTextField tfMataPelajaran = new JTextField(20);
+    private JTextField tfHari = new JTextField(20);
+    private JTextField tfJamMulai = new JTextField(20);
+    private JTextField tfJamSelesai = new JTextField(20);
+    private JTextField tfRuangan = new JTextField(20);
+    private JTextField tfIdPengajar = new JTextField(20);
     private JTable tableJadwal;
     private JadwalController controller;
 
@@ -24,7 +24,7 @@ public class JadwalPanel extends JFrame {
         controller = new JadwalController();
 
         setTitle("Manajemen Jadwal Kelas");
-        setSize(950, 700); // Sesuaikan ukuran window
+        setSize(1000, 700);
         setLayout(new BorderLayout());
 
         JPanel inputPanel = new JPanel(new GridBagLayout());
@@ -32,34 +32,40 @@ public class JadwalPanel extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
 
         gbc.gridx = 0; gbc.gridy = 0;
-        inputPanel.add(new JLabel("ID Jadwal:"), gbc);
+        inputPanel.add(new JLabel("ID Jadwal (Otomatis):"), gbc);
         gbc.gridx = 1;
         inputPanel.add(tfIdJadwal, gbc);
+        tfIdJadwal.setEditable(false);
 
         gbc.gridx = 0; gbc.gridy = 1;
-        inputPanel.add(new JLabel("ID Pengajar:"), gbc);
+        inputPanel.add(new JLabel("Mata Pelajaran:"), gbc);
         gbc.gridx = 1;
-        inputPanel.add(tfIdPengajar, gbc);
+        inputPanel.add(tfMataPelajaran, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
-        inputPanel.add(new JLabel("ID Mapel:"), gbc);
-        gbc.gridx = 1;
-        inputPanel.add(tfIdMapel, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 3;
         inputPanel.add(new JLabel("Hari:"), gbc);
         gbc.gridx = 1;
         inputPanel.add(tfHari, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 3;
         inputPanel.add(new JLabel("Jam Mulai (HH:mm):"), gbc);
         gbc.gridx = 1;
         inputPanel.add(tfJamMulai, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = 4;
         inputPanel.add(new JLabel("Jam Selesai (HH:mm):"), gbc);
         gbc.gridx = 1;
         inputPanel.add(tfJamSelesai, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 5;
+        inputPanel.add(new JLabel("Ruangan:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(tfRuangan, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 6;
+        inputPanel.add(new JLabel("ID Pengajar:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(tfIdPengajar, gbc);
 
         JPanel buttonPanel = new JPanel();
         JButton btnSimpan = new JButton("Simpan");
@@ -68,12 +74,12 @@ public class JadwalPanel extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (validasiInput()) {
                     JadwalModel jadwal = new JadwalModel(
-                        tfIdJadwal.getText(),
-                        tfIdPengajar.getText(),
-                        tfIdMapel.getText(),
+                        tfMataPelajaran.getText(),
                         tfHari.getText(),
-                        tfJamMulai.getText(),
-                        tfJamSelesai.getText()
+                        tfJamMulai.getText(), // Asumsikan format HH:mm
+                        tfJamSelesai.getText(), // Asumsikan format HH:mm
+                        tfRuangan.getText(),
+                        Integer.parseInt(tfIdPengajar.getText()) // Parse ID Pengajar
                     );
                     controller.tambahJadwal(jadwal);
                     refreshTable();
@@ -85,15 +91,17 @@ public class JadwalPanel extends JFrame {
 
         JButton btnUpdate = new JButton("Update");
         btnUpdate.addActionListener(e -> {
-            if (!tfIdJadwal.getText().isEmpty()) {
+            String idStr = tfIdJadwal.getText();
+            if (!idStr.isEmpty() && idStr.matches("\\d+")) {
                 if (validasiInput()) {
                     JadwalModel jadwal = new JadwalModel(
-                        tfIdJadwal.getText(),
-                        tfIdPengajar.getText(),
-                        tfIdMapel.getText(),
+                        Integer.parseInt(idStr), // Parse ID Jadwal
+                        tfMataPelajaran.getText(),
                         tfHari.getText(),
                         tfJamMulai.getText(),
-                        tfJamSelesai.getText()
+                        tfJamSelesai.getText(),
+                        tfRuangan.getText(),
+                        Integer.parseInt(tfIdPengajar.getText())
                     );
                     controller.updateJadwal(jadwal);
                     refreshTable();
@@ -107,8 +115,9 @@ public class JadwalPanel extends JFrame {
 
         JButton btnHapus = new JButton("Hapus");
         btnHapus.addActionListener(e -> {
-            String id = tfIdJadwal.getText();
-            if (!id.isEmpty()) {
+            String idStr = tfIdJadwal.getText();
+            if (!idStr.isEmpty() && idStr.matches("\\d+")) {
+                int id = Integer.parseInt(idStr);
                 int confirm = JOptionPane.showConfirmDialog(null, "Yakin ingin menghapus data dengan ID: " + id + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
                     controller.deleteJadwal(id);
@@ -132,7 +141,8 @@ public class JadwalPanel extends JFrame {
         add(inputPanel, BorderLayout.NORTH);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        String[] kolom = {"ID Jadwal", "ID Pengajar", "ID Mapel", "Hari", "Jam Mulai", "Jam Selesai"};
+        // Header tabel sesuai database
+        String[] kolom = {"ID", "Mata Pelajaran", "Hari", "Jam Mulai", "Jam Selesai", "Ruangan", "ID Pengajar"};
         tableJadwal = new JTable(controller.getTableData(), kolom);
         JScrollPane scrollPane = new JScrollPane(tableJadwal);
 
@@ -140,11 +150,12 @@ public class JadwalPanel extends JFrame {
             if (!tableJadwal.getSelectionModel().isSelectionEmpty()) {
                 int selectedRow = tableJadwal.getSelectedRow();
                 tfIdJadwal.setText(tableJadwal.getValueAt(selectedRow, 0).toString());
-                tfIdPengajar.setText(tableJadwal.getValueAt(selectedRow, 1).toString());
-                tfIdMapel.setText(tableJadwal.getValueAt(selectedRow, 2).toString());
-                tfHari.setText(tableJadwal.getValueAt(selectedRow, 3).toString());
-                tfJamMulai.setText(tableJadwal.getValueAt(selectedRow, 4).toString());
-                tfJamSelesai.setText(tableJadwal.getValueAt(selectedRow, 5).toString());
+                tfMataPelajaran.setText(tableJadwal.getValueAt(selectedRow, 1).toString());
+                tfHari.setText(tableJadwal.getValueAt(selectedRow, 2).toString());
+                tfJamMulai.setText(tableJadwal.getValueAt(selectedRow, 3).toString());
+                tfJamSelesai.setText(tableJadwal.getValueAt(selectedRow, 4).toString());
+                tfRuangan.setText(tableJadwal.getValueAt(selectedRow, 5).toString());
+                tfIdPengajar.setText(tableJadwal.getValueAt(selectedRow, 6).toString());
             }
         });
 
@@ -152,19 +163,19 @@ public class JadwalPanel extends JFrame {
     }
 
     private boolean validasiInput() {
-        String id = tfIdJadwal.getText().trim();
-        String idPengajar = tfIdPengajar.getText().trim();
-        String idMapel = tfIdMapel.getText().trim();
+        String mapel = tfMataPelajaran.getText().trim();
         String hari = tfHari.getText().trim();
         String jamMulai = tfJamMulai.getText().trim();
         String jamSelesai = tfJamSelesai.getText().trim();
+        String ruangan = tfRuangan.getText().trim();
+        String idPengajarStr = tfIdPengajar.getText().trim();
 
-        if (id.isEmpty() || idPengajar.isEmpty() || idMapel.isEmpty() || hari.isEmpty() || jamMulai.isEmpty() || jamSelesai.isEmpty()) {
+        if (mapel.isEmpty() || hari.isEmpty() || jamMulai.isEmpty() || jamSelesai.isEmpty() || ruangan.isEmpty() || idPengajarStr.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field wajib diisi.");
             return false;
         }
 
-        // Validasi format jam (sederhana)
+        // Validasi format jam sederhana
         if (!jamMulai.matches("\\d{2}:\\d{2}") || !jamSelesai.matches("\\d{2}:\\d{2}")) {
             JOptionPane.showMessageDialog(this, "Format jam harus HH:mm (contoh: 08:00).");
             return false;
@@ -176,22 +187,31 @@ public class JadwalPanel extends JFrame {
             return false;
         }
 
+        // Validasi ID Pengajar adalah angka
+        try {
+            Integer.parseInt(idPengajarStr);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "ID Pengajar harus berupa angka.");
+            return false;
+        }
+
         return true;
     }
 
     private void clearFields() {
         tfIdJadwal.setText("");
-        tfIdPengajar.setText("");
-        tfIdMapel.setText("");
+        tfMataPelajaran.setText("");
         tfHari.setText("");
         tfJamMulai.setText("");
         tfJamSelesai.setText("");
+        tfRuangan.setText("");
+        tfIdPengajar.setText("");
     }
 
     private void refreshTable() {
         tableJadwal.setModel(new DefaultTableModel(
             controller.getTableData(),
-            new String[]{"ID Jadwal", "ID Pengajar", "ID Mapel", "Hari", "Jam Mulai", "Jam Selesai"}
+            new String[]{"ID", "Mata Pelajaran", "Hari", "Jam Mulai", "Jam Selesai", "Ruangan", "ID Pengajar"}
         ));
     }
 }
