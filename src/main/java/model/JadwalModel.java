@@ -5,6 +5,7 @@
 package model;
 
 public class JadwalModel {
+
     private int idJadwal; // Ganti dari String ke int
     private String mataPelajaran;
     private String hari;
@@ -38,14 +39,40 @@ public class JadwalModel {
     public void setIdJadwal(int idJadwal) { this.idJadwal = idJadwal; }
     public String getMataPelajaran() { return mataPelajaran; }
     public void setMataPelajaran(String mataPelajaran) { this.mataPelajaran = mataPelajaran; }
+
+    private String idJadwal;
+    private String idPengajar;
+    private String idMapel;
+    private String hari;
+    private String jamMulai;
+    private String jamSelesai;
+
+    public JadwalModel(String idJadwal, String idPengajar, String idMapel, String hari, String jamMulai, String jamSelesai) {
+        this.idJadwal = idJadwal;
+        this.idPengajar = idPengajar;
+        this.idMapel = idMapel;
+        this.hari = hari;
+        this.jamMulai = jamMulai;
+        this.jamSelesai = jamSelesai;
+    }
+    
+    public String getIdJadwal() { return idJadwal; }
+    public void setIdJadwal(String idJadwal) { this.idJadwal = idJadwal; }
+    public String getIdPengajar() { return idPengajar; }
+    public void setIdPengajar(String idPengajar) { this.idPengajar = idPengajar; }
+    public String getIdMapel() { return idMapel; }
+    public void setIdMapel(String idMapel) { this.idMapel = idMapel; }
+
     public String getHari() { return hari; }
     public void setHari(String hari) { this.hari = hari; }
     public String getJamMulai() { return jamMulai; }
     public void setJamMulai(String jamMulai) { this.jamMulai = jamMulai; }
     public String getJamSelesai() { return jamSelesai; }
     public void setJamSelesai(String jamSelesai) { this.jamSelesai = jamSelesai; }
+
     public String getRuangan() { return ruangan; }
     public void setRuangan(String ruangan) { this.ruangan = ruangan; }
     public int getIdPengajar() { return idPengajar; }
     public void setIdPengajar(int idPengajar) { this.idPengajar = idPengajar; }
+
 }
