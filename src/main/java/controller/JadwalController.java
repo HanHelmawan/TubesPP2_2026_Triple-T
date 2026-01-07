@@ -2,7 +2,7 @@ package controller;
 
 import model.JadwalModel;
 import config.DBConnections;
-// import util.PDFExport; // Disabled for now
+import util.PDFExport;
 import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
@@ -120,7 +120,33 @@ public class JadwalController {
     }
 
     public void exportToPdf() {
-        // PDFExport.exportJadwalToPdf(getAllJadwal(), "Laporan_Jadwal.pdf");
-        JOptionPane.showMessageDialog(null, "Fitur Export PDF belum diimplementasikan.");
+        try {
+            List<JadwalModel> list = getAllJadwal();
+            if (list == null || list.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Tidak ada data jadwal untuk diekspor.");
+                return;
+            }
+            String filename = "Laporan_Jadwal_" + System.currentTimeMillis() + ".pdf";
+            PDFExport.exportJadwalToPdf(list, filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal melakukan export PDF: " + e.getMessage());
+        }
+    }
+
+    // Method untuk mendapatkan ID berikutnya yang akan di-generate
+    public int getNextId() {
+        String sql = "SELECT MAX(id_jadwal) as max_id FROM jadwal";
+        try (Connection conn = DBConnections.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                int maxId = rs.getInt("max_id");
+                return maxId + 1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1; // Default jika tabel kosong
     }
 }

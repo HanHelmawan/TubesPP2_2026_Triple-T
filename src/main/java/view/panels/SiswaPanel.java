@@ -101,6 +101,9 @@ public class SiswaPanel extends JPanel {
         add(inputPanel, BorderLayout.NORTH);
         add(buttonPanel, BorderLayout.SOUTH);
 
+        // Menampilkan ID berikutnya saat panel pertama kali dimuat
+        txtIdSiswa.setText(String.valueOf(controller.getNextId()));
+
         String[] kolom = { "ID", "Nama", "Sekolah", "Kelas", "Telepon", "Alamat", "Status" };
         tableSiswa = new JTable(new DefaultTableModel(controller.getTableData(), kolom));
         JScrollPane scrollPane = new JScrollPane(tableSiswa);
@@ -131,6 +134,8 @@ public class SiswaPanel extends JPanel {
                     txtTelepon.getText(),
                     cbStatus.getSelectedItem().toString());
             controller.tambahSiswa(siswa);
+            // Update ID field dengan ID yang baru saja di-generate
+            txtIdSiswa.setText(String.valueOf(siswa.getIdSiswa()));
             refreshTable();
             resetForm();
         }
@@ -174,7 +179,8 @@ public class SiswaPanel extends JPanel {
     }
 
     private void resetForm() {
-        txtIdSiswa.setText("");
+        // Menampilkan ID berikutnya yang akan di-generate
+        txtIdSiswa.setText(String.valueOf(controller.getNextId()));
         txtNama.setText("");
         txtSekolah.setText("");
         txtKelas.setText("");
