@@ -25,6 +25,7 @@ public class MainFrame extends javax.swing.JFrame {
         // Menambahkan panel-panel
         tabbedPane.addTab("Jadwal", new view.panels.JadwalPanel());
         tabbedPane.addTab("Siswa", new view.panels.SiswaPanel());
+        tabbedPane.addTab("Pengajar", new view.panels.PengajarPanel());
 
         getContentPane().add(tabbedPane);
     }

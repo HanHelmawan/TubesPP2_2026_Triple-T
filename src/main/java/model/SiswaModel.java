@@ -1,59 +1,88 @@
 package model;
 
-import java.sql.*;
-import javax.swing.table.DefaultTableModel;
-import config.DBConnections;
-
 public class SiswaModel {
+    private int idSiswa;
+    private String nama;
+    private String sekolah;
+    private String kelas;
+    private String alamat;
+    private String telepon;
+    private String status;
 
-    public void insert(String nama, String sekolah, String kelas, 
-                       String alamat, String telepon, String status) {
-        try {
-            Connection conn = DBConnections.getConnection();
-            String sql = "INSERT INTO siswa (nama_siswa, asal_sekolah, kelas, alamat, no_telepon, status_aktif) VALUES (?,?,?,?,?,?)";
-            PreparedStatement ps = conn.prepareStatement(sql);
-
-            ps.setString(1, nama);
-            ps.setString(2, sekolah);
-            ps.setString(3, kelas);
-            ps.setString(4, alamat);
-            ps.setString(5, telepon);
-            ps.setString(6, status);
-
-            ps.executeUpdate();
-            ps.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public SiswaModel(int idSiswa, String nama, String sekolah, String kelas, String alamat, String telepon,
+            String status) {
+        this.idSiswa = idSiswa;
+        this.nama = nama;
+        this.sekolah = sekolah;
+        this.kelas = kelas;
+        this.alamat = alamat;
+        this.telepon = telepon;
+        this.status = status;
     }
 
-    public DefaultTableModel getData() {
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("ID");
-        model.addColumn("Nama");
-        model.addColumn("Sekolah");
-        model.addColumn("Kelas");
-        model.addColumn("Telepon");
-        model.addColumn("Status");
+    public SiswaModel(String nama, String sekolah, String kelas, String alamat, String telepon, String status) {
+        this.nama = nama;
+        this.sekolah = sekolah;
+        this.kelas = kelas;
+        this.alamat = alamat;
+        this.telepon = telepon;
+        this.status = status;
+    }
 
-        try {
-            Connection conn = DBConnections.getConnection();
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM siswa");
+    // Getters and Setters
+    public int getIdSiswa() {
+        return idSiswa;
+    }
 
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getInt("id_siswa"),
-                    rs.getString("nama_siswa"),
-                    rs.getString("asal_sekolah"),
-                    rs.getString("kelas"),
-                    rs.getString("no_telepon"),
-                    rs.getString("status_aktif")
-                });
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return model;
+    public void setIdSiswa(int idSiswa) {
+        this.idSiswa = idSiswa;
+    }
+
+    public String getNama() {
+        return nama;
+    }
+
+    public void setNama(String nama) {
+        this.nama = nama;
+    }
+
+    public String getSekolah() {
+        return sekolah;
+    }
+
+    public void setSekolah(String sekolah) {
+        this.sekolah = sekolah;
+    }
+
+    public String getKelas() {
+        return kelas;
+    }
+
+    public void setKelas(String kelas) {
+        this.kelas = kelas;
+    }
+
+    public String getAlamat() {
+        return alamat;
+    }
+
+    public void setAlamat(String alamat) {
+        this.alamat = alamat;
+    }
+
+    public String getTelepon() {
+        return telepon;
+    }
+
+    public void setTelepon(String telepon) {
+        this.telepon = telepon;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
