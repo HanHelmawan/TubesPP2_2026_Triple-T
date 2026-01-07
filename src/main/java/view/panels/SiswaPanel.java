@@ -98,7 +98,29 @@ public class SiswaPanel extends JPanel {
         buttonPanel.add(btnHapus);
         buttonPanel.add(btnExport);
 
-        add(inputPanel, BorderLayout.NORTH);
+        add(inputPanel, BorderLayout.WEST); // Place directly in West or wrap?
+        // Better: Wrap in FlowLayout LEFT to keep it "mentok kiri" but sticking
+        // together
+        JPanel inputWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        inputWrapper.add(inputPanel);
+        add(inputWrapper, BorderLayout.NORTH);
+
+        // Styling Buttons
+        Dimension btnSize = new Dimension(120, 40);
+        Font btnFont = new Font("SansSerif", Font.BOLD, 14);
+
+        JButton[] buttons = { btnSimpan, btnUpdate, btnHapus, btnExport };
+        for (JButton btn : buttons) {
+            btn.setPreferredSize(btnSize);
+            btn.setFont(btnFont);
+        }
+
+        buttonPanel.add(btnSimpan);
+        buttonPanel.add(btnUpdate);
+        buttonPanel.add(btnHapus);
+        buttonPanel.add(btnExport);
+
+        // add(inputPanel, BorderLayout.NORTH); // Replaced by wrapper above
         add(buttonPanel, BorderLayout.SOUTH);
 
         String[] kolom = { "ID", "Nama", "Sekolah", "Kelas", "Telepon", "Alamat", "Status" };
