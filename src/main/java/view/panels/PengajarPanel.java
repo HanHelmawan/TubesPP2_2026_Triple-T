@@ -165,7 +165,34 @@ public class PengajarPanel extends JPanel {
             }
         });
 
-        add(scrollPane, BorderLayout.CENTER);
+        // Search Panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JTextField txtSearch = new JTextField(20);
+        JButton btnSearch = new JButton("Cari");
+        searchPanel.add(new JLabel("Cari Nama/Spesialisasi:"));
+        searchPanel.add(txtSearch);
+        searchPanel.add(btnSearch);
+
+        btnSearch.addActionListener(e -> {
+            String keyword = txtSearch.getText();
+            java.util.List<PengajarModel> list = controller.searchPengajar(keyword);
+            String[] cols = { "ID Pengajar", "Nama", "Spesialisasi", "No Telepon", "Alamat" };
+            Object[][] data = new Object[list.size()][5];
+            for (int i = 0; i < list.size(); i++) {
+                PengajarModel p = list.get(i);
+                data[i][0] = p.getIdPengajar();
+                data[i][1] = p.getNama();
+                data[i][2] = p.getSpesialisasi();
+                data[i][3] = p.getNoTelepon();
+                data[i][4] = p.getAlamat();
+            }
+            tablePengajar.setModel(new DefaultTableModel(data, cols));
+        });
+
+        JPanel tableWrapper = new JPanel(new BorderLayout());
+        tableWrapper.add(searchPanel, BorderLayout.NORTH);
+        tableWrapper.add(scrollPane, BorderLayout.CENTER);
+        add(tableWrapper, BorderLayout.CENTER);
     }
 
     private boolean validasiInput() {

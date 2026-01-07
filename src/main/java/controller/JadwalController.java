@@ -11,22 +11,22 @@ import java.util.List;
 public class JadwalController {
 
     public void tambahJadwal(JadwalModel jadwal) {
-        String sql = "INSERT INTO jadwal (mata_pelajaran, hari, jam_mulai, jam_selesai, ruangan, id_pengajar) VALUES (?, ?, ?, ?, ?, ?)";
+        // Cari ID kosong (gap) atau ID berikutnya
+        int newId = getNextId();
+        jadwal.setIdJadwal(newId);
+
+        String sql = "INSERT INTO jadwal (id_jadwal, mata_pelajaran, hari, jam_mulai, jam_selesai, ruangan, id_pengajar) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnections.getConnection(); // Use getConnection()
-                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, jadwal.getMataPelajaran());
-            pstmt.setString(2, jadwal.getHari());
-            pstmt.setString(3, jadwal.getJamMulai()); // Assuming String format HH:mm
-            pstmt.setString(4, jadwal.getJamSelesai());
-            pstmt.setString(5, jadwal.getRuangan());
-            pstmt.setInt(6, jadwal.getIdPengajar());
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, newId);
+            pstmt.setString(2, jadwal.getMataPelajaran());
+            pstmt.setString(3, jadwal.getHari());
+            pstmt.setString(4, jadwal.getJamMulai()); // Assuming String format HH:mm
+            pstmt.setString(5, jadwal.getJamSelesai());
+            pstmt.setString(6, jadwal.getRuangan());
+            pstmt.setInt(7, jadwal.getIdPengajar());
             pstmt.executeUpdate();
 
-            try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    jadwal.setIdJadwal(rs.getInt(1));
-                }
-            }
             JOptionPane.showMessageDialog(null, "Data jadwal berhasil ditambahkan.");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -103,6 +103,32 @@ public class JadwalController {
         return list;
     }
 
+    public java.util.List<JadwalModel> searchJadwal(String keyword) {
+        java.util.List<JadwalModel> list = new java.util.ArrayList<>();
+        // Note: For simplicity searching by 'mata_pelajaran'
+        String sql = "SELECT * FROM jadwal WHERE mata_pelajaran LIKE ?";
+        try (java.sql.Connection conn = config.DBConnections.getConnection();
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + keyword + "%");
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    JadwalModel j = new JadwalModel(
+                            rs.getString("mata_pelajaran"),
+                            rs.getString("hari"),
+                            rs.getString("jam_mulai"),
+                            rs.getString("jam_selesai"),
+                            rs.getString("ruangan"),
+                            rs.getInt("id_pengajar"));
+                    j.setIdJadwal(rs.getInt("id_jadwal"));
+                    list.add(j);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public Object[][] getTableData() {
         List<JadwalModel> list = getAllJadwal();
         Object[][] data = new Object[list.size()][7];
@@ -134,16 +160,21 @@ public class JadwalController {
         }
     }
 
-    // Method untuk mendapatkan ID berikutnya yang akan di-generate
+    // Method untuk mendapatkan ID Kosong (Gap) berikutnya
     public int getNextId() {
-        String sql = "SELECT MAX(id_jadwal) as max_id FROM jadwal";
+        String sql = "SELECT id_jadwal FROM jadwal ORDER BY id_jadwal ASC";
         try (Connection conn = DBConnections.getConnection();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                int maxId = rs.getInt("max_id");
-                return maxId + 1;
+            int expectedId = 1;
+            while (rs.next()) {
+                int currentId = rs.getInt("id_jadwal");
+                if (currentId != expectedId) {
+                    return expectedId; // Menemukan celah
+                }
+                expectedId++;
             }
+            return expectedId; // Tidak ada celah
         } catch (SQLException e) {
             e.printStackTrace();
         }

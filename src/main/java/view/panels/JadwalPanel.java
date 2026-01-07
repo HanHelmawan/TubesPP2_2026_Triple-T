@@ -189,7 +189,36 @@ public class JadwalPanel extends JPanel {
             }
         });
 
-        add(scrollPane, BorderLayout.CENTER);
+        // Search Panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JTextField txtSearch = new JTextField(20);
+        JButton btnSearch = new JButton("Cari");
+        searchPanel.add(new JLabel("Cari Mata Pelajaran:"));
+        searchPanel.add(txtSearch);
+        searchPanel.add(btnSearch);
+
+        btnSearch.addActionListener(ev -> {
+            String keyword = txtSearch.getText();
+            java.util.List<JadwalModel> list = controller.searchJadwal(keyword);
+            String[] cols = { "ID", "Mata Pelajaran", "Hari", "Jam Mulai", "Jam Selesai", "Ruangan", "ID Pengajar" };
+            Object[][] data = new Object[list.size()][7];
+            for (int i = 0; i < list.size(); i++) {
+                JadwalModel j = list.get(i);
+                data[i][0] = j.getIdJadwal();
+                data[i][1] = j.getMataPelajaran();
+                data[i][2] = j.getHari();
+                data[i][3] = j.getJamMulai();
+                data[i][4] = j.getJamSelesai();
+                data[i][5] = j.getRuangan();
+                data[i][6] = j.getIdPengajar();
+            }
+            tableJadwal.setModel(new DefaultTableModel(data, cols));
+        });
+
+        JPanel tableWrapper = new JPanel(new BorderLayout());
+        tableWrapper.add(searchPanel, BorderLayout.NORTH);
+        tableWrapper.add(scrollPane, BorderLayout.CENTER);
+        add(tableWrapper, BorderLayout.CENTER);
     }
 
     private boolean validasiInput() {

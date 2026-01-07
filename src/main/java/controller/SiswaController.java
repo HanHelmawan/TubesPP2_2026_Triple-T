@@ -11,23 +11,22 @@ public class SiswaController {
     }
 
     public void tambahSiswa(SiswaModel siswa) {
-        String sql = "INSERT INTO siswa (nama_siswa, asal_sekolah, kelas, alamat, no_telepon, status_aktif) VALUES (?, ?, ?, ?, ?, ?)";
+        // Cari ID kosong (gap) atau ID berikutnya
+        int newId = getNextId();
+        siswa.setIdSiswa(newId);
+
+        String sql = "INSERT INTO siswa (id_siswa, nama_siswa, asal_sekolah, kelas, alamat, no_telepon, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (java.sql.Connection conn = config.DBConnections.getConnection();
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, siswa.getNama());
-            pstmt.setString(2, siswa.getSekolah());
-            pstmt.setString(3, siswa.getKelas());
-            pstmt.setString(4, siswa.getAlamat());
-            pstmt.setString(5, siswa.getTelepon());
-            pstmt.setString(6, siswa.getStatus());
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, newId);
+            pstmt.setString(2, siswa.getNama());
+            pstmt.setString(3, siswa.getSekolah());
+            pstmt.setString(4, siswa.getKelas());
+            pstmt.setString(5, siswa.getAlamat());
+            pstmt.setString(6, siswa.getTelepon());
+            pstmt.setString(7, siswa.getStatus());
             pstmt.executeUpdate();
-            
-            // Membaca ID yang dihasilkan dari auto increment
-            try (java.sql.ResultSet rs = pstmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    siswa.setIdSiswa(rs.getInt(1));
-                }
-            }
+
             JOptionPane.showMessageDialog(null, "Data berhasil ditambahkan");
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
@@ -122,19 +121,50 @@ public class SiswaController {
     }
 
     // Method untuk mendapatkan ID berikutnya yang akan di-generate
+    // Method untuk mendapatkan ID Kosong (Gap) berikutnya
     public int getNextId() {
-        String sql = "SELECT MAX(id_siswa) as max_id FROM siswa";
+        String sql = "SELECT id_siswa FROM siswa ORDER BY id_siswa ASC";
         try (java.sql.Connection conn = config.DBConnections.getConnection();
                 java.sql.Statement stmt = conn.createStatement();
                 java.sql.ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                int maxId = rs.getInt("max_id");
-                return maxId + 1;
+            int expectedId = 1;
+            while (rs.next()) {
+                int currentId = rs.getInt("id_siswa");
+                if (currentId != expectedId) {
+                    return expectedId; // Menemukan celah (misal ada 1, 3 -> return 2)
+                }
+                expectedId++;
             }
+            return expectedId; // Tidak ada celah, return max + 1
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
         }
         return 1; // Default jika tabel kosong
     }
 
+    public java.util.List<SiswaModel> searchSiswa(String keyword) {
+        java.util.List<SiswaModel> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM siswa WHERE nama_siswa LIKE ? OR asal_sekolah LIKE ?";
+        try (java.sql.Connection conn = config.DBConnections.getConnection();
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + keyword + "%");
+            pstmt.setString(2, "%" + keyword + "%");
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    SiswaModel s = new SiswaModel(
+                            rs.getString("nama_siswa"),
+                            rs.getString("asal_sekolah"),
+                            rs.getString("kelas"),
+                            rs.getString("alamat"),
+                            rs.getString("no_telepon"),
+                            rs.getString("status_aktif") == null ? "Non-Aktif" : rs.getString("status_aktif"));
+                    s.setIdSiswa(rs.getInt("id_siswa"));
+                    list.add(s);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

@@ -142,7 +142,36 @@ public class SiswaPanel extends JPanel {
             }
         });
 
-        add(scrollPane, BorderLayout.CENTER);
+        // Search Panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JTextField txtSearch = new JTextField(20);
+        JButton btnSearch = new JButton("Cari");
+        searchPanel.add(new JLabel("Cari Nama/Sekolah:"));
+        searchPanel.add(txtSearch);
+        searchPanel.add(btnSearch);
+
+        btnSearch.addActionListener(e -> {
+            String keyword = txtSearch.getText();
+            java.util.List<SiswaModel> list = controller.searchSiswa(keyword);
+            String[] cols = { "ID", "Nama", "Sekolah", "Kelas", "Telepon", "Alamat", "Status" };
+            Object[][] data = new Object[list.size()][7];
+            for (int i = 0; i < list.size(); i++) {
+                SiswaModel s = list.get(i);
+                data[i][0] = s.getIdSiswa();
+                data[i][1] = s.getNama();
+                data[i][2] = s.getSekolah();
+                data[i][3] = s.getKelas();
+                data[i][4] = s.getTelepon();
+                data[i][5] = s.getAlamat();
+                data[i][6] = s.getStatus();
+            }
+            tableSiswa.setModel(new DefaultTableModel(data, cols));
+        });
+
+        JPanel tableWrapper = new JPanel(new BorderLayout());
+        tableWrapper.add(searchPanel, BorderLayout.NORTH);
+        tableWrapper.add(scrollPane, BorderLayout.CENTER);
+        add(tableWrapper, BorderLayout.CENTER);
     }
 
     private void tambahData() {

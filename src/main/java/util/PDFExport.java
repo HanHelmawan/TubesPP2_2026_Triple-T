@@ -9,11 +9,7 @@ import java.awt.print.PrinterException;
 import java.text.MessageFormat;
 import java.util.List;
 
-/**
- * Utility class for exporting data using native Java Printing API via HTML.
- * This method is more robust for generating reports than printing an invisible
- * JTable.
- */
+
 public class PDFExport {
 
     public static void exportSiswaToPdf(List<SiswaModel> listSiswa, String filename) {

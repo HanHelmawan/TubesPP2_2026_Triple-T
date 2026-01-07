@@ -15,23 +15,21 @@ import java.util.List;
 public class PengajarController {
 
     public void tambahPengajar(PengajarModel pengajar) {
-        // id_pengajar is AUTO_INCREMENT, so we don't insert it.
-        String sql = "INSERT INTO pengajar (nama_pengajar, spesialisasi, no_telepon, alamat) VALUES (?, ?, ?, ?)";
+        // Cari ID kosong (gap) atau ID berikutnya
+        int newId = Integer.parseInt(getNextId());
+        pengajar.setIdPengajar(String.valueOf(newId));
+
+        String sql = "INSERT INTO pengajar (id_pengajar, nama_pengajar, spesialisasi, no_telepon, alamat) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBConnections.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, pengajar.getNama());
-            pstmt.setString(2, pengajar.getSpesialisasi());
-            pstmt.setString(3, pengajar.getNoTelepon());
-            pstmt.setString(4, pengajar.getAlamat());
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, newId);
+            pstmt.setString(2, pengajar.getNama());
+            pstmt.setString(3, pengajar.getSpesialisasi());
+            pstmt.setString(4, pengajar.getNoTelepon());
+            pstmt.setString(5, pengajar.getAlamat());
             pstmt.executeUpdate();
-            
-            // Membaca ID yang dihasilkan dari auto increment
-            try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    // ID bisa berupa int atau string tergantung database schema
-                    pengajar.setIdPengajar(String.valueOf(rs.getInt(1)));
-                }
-            }
+
+            JOptionPane.showMessageDialog(null, "Data pengajar berhasil ditambahkan");
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Gagal menambahkan pengajar: " + e.getMessage());
@@ -116,33 +114,48 @@ public class PengajarController {
         }
     }
 
-    // Method untuk mendapatkan ID berikutnya yang akan di-generate
+    // Method untuk mendapatkan ID Kosong (Gap) berikutnya
     public String getNextId() {
-        String sql = "SELECT MAX(CAST(id_pengajar AS UNSIGNED)) as max_id FROM pengajar";
+        String sql = "SELECT id_pengajar FROM pengajar ORDER BY CAST(id_pengajar AS UNSIGNED) ASC";
         try (Connection conn = DBConnections.getConnection();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                int maxId = rs.getInt("max_id");
-                return String.valueOf(maxId + 1);
-            }
-        } catch (SQLException e) {
-            // Jika gagal dengan CAST, coba tanpa CAST (jika ID sudah integer)
-            try (Connection conn = DBConnections.getConnection();
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT MAX(id_pengajar) as max_id FROM pengajar")) {
-                if (rs.next()) {
-                    Object maxIdObj = rs.getObject("max_id");
-                    if (maxIdObj != null) {
-                        int maxId = rs.getInt("max_id");
-                        return String.valueOf(maxId + 1);
-                    }
+            int expectedId = 1;
+            while (rs.next()) {
+                int currentId = rs.getInt("id_pengajar");
+                if (currentId != expectedId) {
+                    return String.valueOf(expectedId); // Menemukan celah
                 }
-            } catch (SQLException e2) {
-                e2.printStackTrace();
+                expectedId++;
             }
+            return String.valueOf(expectedId); // Tidak ada celah
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return "1"; // Default jika tabel kosong
     }
 
+    public java.util.List<PengajarModel> searchPengajar(String keyword) {
+        java.util.List<PengajarModel> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM pengajar WHERE nama_pengajar LIKE ? OR spesialisasi LIKE ?";
+        try (Connection conn = DBConnections.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + keyword + "%");
+            pstmt.setString(2, "%" + keyword + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    PengajarModel p = new PengajarModel(
+                            rs.getString("nama_pengajar"),
+                            rs.getString("spesialisasi"),
+                            rs.getString("no_telepon"),
+                            rs.getString("alamat"));
+                    p.setIdPengajar(String.valueOf(rs.getInt("id_pengajar")));
+                    list.add(p);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
