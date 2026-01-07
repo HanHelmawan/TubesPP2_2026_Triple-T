@@ -1,74 +1,198 @@
 package view.panels;
 
+import controller.SiswaController;
+import model.SiswaModel;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 
 public class SiswaPanel extends JPanel {
 
-    public JTextField txtNama, txtSekolah, txtKelas, txtTelepon;
-    public JTextArea txtAlamat;
-    public JComboBox<String> cbStatus;
-    public JButton btnTambah, btnReset;
-    public JTable table;
+    private JTextField txtNama = new JTextField(20);
+    private JTextField txtSekolah = new JTextField(20);
+    private JTextField txtKelas = new JTextField(20);
+    private JTextField txtTelepon = new JTextField(20);
+    private JTextField txtAlamat = new JTextField(20);
+    private JComboBox<String> cbStatus = new JComboBox<>(new String[] { "Aktif", "Non-Aktif" });
+    private JTextField txtIdSiswa = new JTextField(20); // Hidden or Read-Only for ID
+
+    private JTable tableSiswa;
+    private SiswaController controller;
 
     public SiswaPanel() {
-        setLayout(null);
+        controller = new SiswaController();
+        setLayout(new BorderLayout());
 
-        JLabel lblNama = new JLabel("Nama");
-        lblNama.setBounds(20, 20, 100, 25);
-        add(lblNama);
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        txtNama = new JTextField();
-        txtNama.setBounds(120, 20, 200, 25);
-        add(txtNama);
+        // ID Siswa
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        inputPanel.add(new JLabel("ID Siswa (Auto):"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(txtIdSiswa, gbc);
+        txtIdSiswa.setEditable(false);
 
-        JLabel lblSekolah = new JLabel("Sekolah");
-        lblSekolah.setBounds(20, 60, 100, 25);
-        add(lblSekolah);
+        // Nama
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        inputPanel.add(new JLabel("Nama:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(txtNama, gbc);
 
-        txtSekolah = new JTextField();
-        txtSekolah.setBounds(120, 60, 200, 25);
-        add(txtSekolah);
+        // Sekolah
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        inputPanel.add(new JLabel("Sekolah:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(txtSekolah, gbc);
 
-        JLabel lblKelas = new JLabel("Kelas");
-        lblKelas.setBounds(20, 100, 100, 25);
-        add(lblKelas);
+        // Kelas
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        inputPanel.add(new JLabel("Kelas:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(txtKelas, gbc);
 
-        txtKelas = new JTextField();
-        txtKelas.setBounds(120, 100, 200, 25);
-        add(txtKelas);
+        // Telepon
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        inputPanel.add(new JLabel("No Telepon:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(txtTelepon, gbc);
 
-        JLabel lblTelepon = new JLabel("No Telepon");
-        lblTelepon.setBounds(20, 140, 100, 25);
-        add(lblTelepon);
+        // Alamat
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        inputPanel.add(new JLabel("Alamat:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(txtAlamat, gbc);
 
-        txtTelepon = new JTextField();
-        txtTelepon.setBounds(120, 140, 200, 25);
-        add(txtTelepon);
+        // Status
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        inputPanel.add(new JLabel("Status:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(cbStatus, gbc);
 
-        JLabel lblStatus = new JLabel("Status");
-        lblStatus.setBounds(20, 180, 100, 25);
-        add(lblStatus);
+        JPanel buttonPanel = new JPanel();
 
-        cbStatus = new JComboBox<>(new String[]{"Aktif", "Non-Aktif"});
-        cbStatus.setBounds(120, 180, 200, 25);
-        add(cbStatus);
+        // STANDARD BUTTONS: Simpan, Update, Hapus, Export PDF
+        JButton btnSimpan = new JButton("Simpan"); // Renamed from Tambah
+        btnSimpan.addActionListener(e -> tambahData());
 
-        btnTambah = new JButton("Tambah");
-        btnTambah.setBounds(120, 220, 90, 30);
-        add(btnTambah);
+        JButton btnUpdate = new JButton("Update");
+        btnUpdate.addActionListener(e -> updateData());
 
-        btnReset = new JButton("Reset");
-        btnReset.setBounds(230, 220, 90, 30);
-        add(btnReset);
+        JButton btnHapus = new JButton("Hapus");
+        btnHapus.addActionListener(e -> deleteData());
 
-        table = new JTable();
-        JScrollPane sp = new JScrollPane(table);
-        sp.setBounds(350, 20, 500, 230);
-        add(sp);
+        JButton btnExport = new JButton("Export PDF");
+        btnExport.addActionListener(e -> controller.exportToPdf());
+
+        buttonPanel.add(btnSimpan);
+        buttonPanel.add(btnUpdate);
+        buttonPanel.add(btnHapus);
+        buttonPanel.add(btnExport);
+
+        add(inputPanel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        String[] kolom = { "ID", "Nama", "Sekolah", "Kelas", "Telepon", "Alamat", "Status" };
+        tableSiswa = new JTable(new DefaultTableModel(controller.getTableData(), kolom));
+        JScrollPane scrollPane = new JScrollPane(tableSiswa);
+
+        tableSiswa.getSelectionModel().addListSelectionListener(e -> {
+            if (!tableSiswa.getSelectionModel().isSelectionEmpty()) {
+                int selectedRow = tableSiswa.getSelectedRow();
+                txtIdSiswa.setText(tableSiswa.getValueAt(selectedRow, 0).toString());
+                txtNama.setText(tableSiswa.getValueAt(selectedRow, 1).toString());
+                txtSekolah.setText(tableSiswa.getValueAt(selectedRow, 2).toString());
+                txtKelas.setText(tableSiswa.getValueAt(selectedRow, 3).toString());
+                txtTelepon.setText(tableSiswa.getValueAt(selectedRow, 4).toString());
+                txtAlamat.setText(tableSiswa.getValueAt(selectedRow, 5).toString());
+                cbStatus.setSelectedItem(tableSiswa.getValueAt(selectedRow, 6).toString());
+            }
+        });
+
+        add(scrollPane, BorderLayout.CENTER);
     }
 
-    public void setTable(DefaultTableModel model) {
-        table.setModel(model);
+    private void tambahData() {
+        if (validasiInput()) {
+            SiswaModel siswa = new SiswaModel(
+                    txtNama.getText(),
+                    txtSekolah.getText(),
+                    txtKelas.getText(),
+                    txtAlamat.getText(),
+                    txtTelepon.getText(),
+                    cbStatus.getSelectedItem().toString());
+            controller.tambahSiswa(siswa);
+            refreshTable();
+            resetForm();
+        }
+    }
+
+    private void updateData() {
+        if (!txtIdSiswa.getText().isEmpty() && validasiInput()) {
+            SiswaModel siswa = new SiswaModel(
+                    Integer.parseInt(txtIdSiswa.getText()),
+                    txtNama.getText(),
+                    txtSekolah.getText(),
+                    txtKelas.getText(),
+                    txtAlamat.getText(),
+                    txtTelepon.getText(),
+                    cbStatus.getSelectedItem().toString());
+            controller.updateSiswa(siswa);
+            refreshTable();
+            resetForm();
+        } else {
+            JOptionPane.showMessageDialog(this, "Pilih data yang akan diupdate.");
+        }
+    }
+
+    private void deleteData() {
+        if (!txtIdSiswa.getText().isEmpty()) {
+            int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus data ini?", "Konfirmasi",
+                    JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                controller.deleteSiswa(Integer.parseInt(txtIdSiswa.getText()));
+                refreshTable();
+                resetForm();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Pilih data yang akan dihapus.");
+        }
+    }
+
+    private void refreshTable() {
+        String[] kolom = { "ID", "Nama", "Sekolah", "Kelas", "Telepon", "Alamat", "Status" };
+        tableSiswa.setModel(new DefaultTableModel(controller.getTableData(), kolom));
+    }
+
+    private void resetForm() {
+        txtIdSiswa.setText("");
+        txtNama.setText("");
+        txtSekolah.setText("");
+        txtKelas.setText("");
+        txtTelepon.setText("");
+        txtAlamat.setText("");
+        cbStatus.setSelectedIndex(0);
+        tableSiswa.clearSelection();
+    }
+
+    private boolean validasiInput() {
+        if (txtNama.getText().isEmpty() || txtTelepon.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama dan Telepon wajib diisi!");
+            return false;
+        }
+        if (!txtTelepon.getText().matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "Telepon harus angka!");
+            return false;
+        }
+        return true;
     }
 }
