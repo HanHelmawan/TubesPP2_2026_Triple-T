@@ -1,6 +1,7 @@
 package controller;
 
 import model.SiswaModel;
+import util.PDFExport;
 
 import javax.swing.*;
 
@@ -12,7 +13,7 @@ public class SiswaController {
     public void tambahSiswa(SiswaModel siswa) {
         String sql = "INSERT INTO siswa (nama_siswa, asal_sekolah, kelas, alamat, no_telepon, status_aktif) VALUES (?, ?, ?, ?, ?, ?)";
         try (java.sql.Connection conn = config.DBConnections.getConnection();
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, siswa.getNama());
             pstmt.setString(2, siswa.getSekolah());
             pstmt.setString(3, siswa.getKelas());
@@ -20,6 +21,13 @@ public class SiswaController {
             pstmt.setString(5, siswa.getTelepon());
             pstmt.setString(6, siswa.getStatus());
             pstmt.executeUpdate();
+            
+            // Membaca ID yang dihasilkan dari auto increment
+            try (java.sql.ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    siswa.setIdSiswa(rs.getInt(1));
+                }
+            }
             JOptionPane.showMessageDialog(null, "Data berhasil ditambahkan");
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
@@ -99,7 +107,34 @@ public class SiswaController {
     }
 
     public void exportToPdf() {
-        JOptionPane.showMessageDialog(null, "Fitur eksport sedang diperbaiki.");
+        try {
+            java.util.List<SiswaModel> list = getAllSiswa();
+            if (list == null || list.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Tidak ada data siswa untuk diekspor.");
+                return;
+            }
+            String filename = "Laporan_Data_Siswa_" + System.currentTimeMillis() + ".pdf";
+            PDFExport.exportSiswaToPdf(list, filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal melakukan export PDF: " + e.getMessage());
+        }
+    }
+
+    // Method untuk mendapatkan ID berikutnya yang akan di-generate
+    public int getNextId() {
+        String sql = "SELECT MAX(id_siswa) as max_id FROM siswa";
+        try (java.sql.Connection conn = config.DBConnections.getConnection();
+                java.sql.Statement stmt = conn.createStatement();
+                java.sql.ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                int maxId = rs.getInt("max_id");
+                return maxId + 1;
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return 1; // Default jika tabel kosong
     }
 
 }

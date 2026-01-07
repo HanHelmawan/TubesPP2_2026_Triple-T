@@ -71,6 +71,8 @@ public class PengajarPanel extends JPanel {
                         tfNoTelepon.getText(),
                         tfAlamat.getText());
                 controller.tambahPengajar(pengajar);
+                // Update ID field dengan ID yang baru saja di-generate
+                tfIdPengajar.setText(pengajar.getIdPengajar());
                 refreshTable();
                 clearFields();
                 JOptionPane.showMessageDialog(null, "Data berhasil disimpan.");
@@ -142,6 +144,9 @@ public class PengajarPanel extends JPanel {
 
         add(buttonPanel, BorderLayout.SOUTH);
 
+        // Menampilkan ID berikutnya saat panel pertama kali dimuat
+        tfIdPengajar.setText(controller.getNextId());
+
         String[] kolom = { "ID Pengajar", "Nama", "Spesialisasi", "No Telepon", "Alamat" };
         tablePengajar = new JTable(controller.getTableData(), kolom);
         JScrollPane scrollPane = new JScrollPane(tablePengajar);
@@ -173,7 +178,8 @@ public class PengajarPanel extends JPanel {
     }
 
     private void clearFields() {
-        tfIdPengajar.setText("");
+        // Menampilkan ID berikutnya yang akan di-generate
+        tfIdPengajar.setText(controller.getNextId());
         tfNama.setText("");
         tfSpesialisasi.setText("");
         tfNoTelepon.setText("");

@@ -89,6 +89,8 @@ public class JadwalPanel extends JPanel {
                             Integer.parseInt(tfIdPengajar.getText()) // Parse ID Pengajar
                     );
                     controller.tambahJadwal(jadwal);
+                    // Update ID field dengan ID yang baru saja di-generate
+                    tfIdJadwal.setText(String.valueOf(jadwal.getIdJadwal()));
                     refreshTable();
                     clearFields();
                     JOptionPane.showMessageDialog(null, "Data berhasil disimpan.");
@@ -167,6 +169,9 @@ public class JadwalPanel extends JPanel {
 
         add(buttonPanel, BorderLayout.SOUTH);
 
+        // Menampilkan ID berikutnya saat panel pertama kali dimuat
+        tfIdJadwal.setText(String.valueOf(controller.getNextId()));
+
         // Header tabel sesuai database
         String[] kolom = { "ID", "Mata Pelajaran", "Hari", "Jam Mulai", "Jam Selesai", "Ruangan", "ID Pengajar" };
         tableJadwal = new JTable(controller.getTableData(), kolom);
@@ -226,7 +231,8 @@ public class JadwalPanel extends JPanel {
     }
 
     private void clearFields() {
-        tfIdJadwal.setText("");
+        // Menampilkan ID berikutnya yang akan di-generate
+        tfIdJadwal.setText(String.valueOf(controller.getNextId()));
         tfMataPelajaran.setText("");
         tfHari.setText("");
         tfJamMulai.setText("");

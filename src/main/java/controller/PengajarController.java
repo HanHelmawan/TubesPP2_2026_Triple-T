@@ -6,7 +6,7 @@ package controller;
 
 import model.PengajarModel;
 import config.DBConnections;
-// import util.PDFExport; // Pastikan import ini ada
+import util.PDFExport;
 import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,12 +18,20 @@ public class PengajarController {
         // id_pengajar is AUTO_INCREMENT, so we don't insert it.
         String sql = "INSERT INTO pengajar (nama_pengajar, spesialisasi, no_telepon, alamat) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnections.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, pengajar.getNama());
             pstmt.setString(2, pengajar.getSpesialisasi());
             pstmt.setString(3, pengajar.getNoTelepon());
             pstmt.setString(4, pengajar.getAlamat());
             pstmt.executeUpdate();
+            
+            // Membaca ID yang dihasilkan dari auto increment
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    // ID bisa berupa int atau string tergantung database schema
+                    pengajar.setIdPengajar(String.valueOf(rs.getInt(1)));
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Gagal menambahkan pengajar: " + e.getMessage());
@@ -94,14 +102,47 @@ public class PengajarController {
     }
 
     public void exportToPdf() {
-        List<PengajarModel> list = getAllPengajar();
-        if (list.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Tidak ada data pengajar untuk diekspor.");
-        } else {
-            // PDFExport.exportPengajarToPdf(list, "Laporan_Data_Pengajar_" +
-            // System.currentTimeMillis() + ".pdf");
-            JOptionPane.showMessageDialog(null, "Fitur eksport sedang diperbaiki.");
+        try {
+            List<PengajarModel> list = getAllPengajar();
+            if (list == null || list.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Tidak ada data pengajar untuk diekspor.");
+                return;
+            }
+            String filename = "Laporan_Data_Pengajar_" + System.currentTimeMillis() + ".pdf";
+            PDFExport.exportPengajarToPdf(list, filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal melakukan export PDF: " + e.getMessage());
         }
+    }
+
+    // Method untuk mendapatkan ID berikutnya yang akan di-generate
+    public String getNextId() {
+        String sql = "SELECT MAX(CAST(id_pengajar AS UNSIGNED)) as max_id FROM pengajar";
+        try (Connection conn = DBConnections.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                int maxId = rs.getInt("max_id");
+                return String.valueOf(maxId + 1);
+            }
+        } catch (SQLException e) {
+            // Jika gagal dengan CAST, coba tanpa CAST (jika ID sudah integer)
+            try (Connection conn = DBConnections.getConnection();
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT MAX(id_pengajar) as max_id FROM pengajar")) {
+                if (rs.next()) {
+                    Object maxIdObj = rs.getObject("max_id");
+                    if (maxIdObj != null) {
+                        int maxId = rs.getInt("max_id");
+                        return String.valueOf(maxId + 1);
+                    }
+                }
+            } catch (SQLException e2) {
+                e2.printStackTrace();
+            }
+        }
+        return "1"; // Default jika tabel kosong
     }
 
 }
