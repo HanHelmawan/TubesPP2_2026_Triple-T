@@ -33,7 +33,7 @@ public class HomePanel extends JPanel {
         add(btnPengajar, gbc);
 
         // Button 2: Jadwal
-        JButton btnJadwal = new JButton("2. Kelola Jadwal");
+        JButton btnJadwal = new JButton("2. Kelola Data Jadwal");
         btnJadwal.setFont(new Font("SansSerif", Font.PLAIN, 16));
         btnJadwal.setPreferredSize(new Dimension(250, 40));
         btnJadwal.addActionListener(e -> nav.accept("Jadwal"));
