@@ -24,13 +24,12 @@ public class PengajarPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // ID Pengajar (Read Only / Auto)
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        inputPanel.add(new JLabel("ID Pengajar:"), gbc);
-        gbc.gridx = 1;
-        inputPanel.add(tfIdPengajar, gbc);
-        tfIdPengajar.setEditable(false); // ID Auto-generated usually
+        // ID Pengajar (Read Only / Auto) - Hidden
+        // gbc.gridx = 0; gbc.gridy = 0;
+        // inputPanel.add(new JLabel("ID Pengajar:"), gbc);
+        // gbc.gridx = 1;
+        // inputPanel.add(tfIdPengajar, gbc);
+        tfIdPengajar.setEditable(false);
 
         // Nama
         gbc.gridx = 0;

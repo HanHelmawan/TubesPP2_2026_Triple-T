@@ -31,11 +31,10 @@ public class JadwalPanel extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        inputPanel.add(new JLabel("ID Jadwal (Otomatis):"), gbc);
-        gbc.gridx = 1;
-        inputPanel.add(tfIdJadwal, gbc);
+        // gbc.gridx = 0; gbc.gridy = 0;
+        // inputPanel.add(new JLabel("ID Jadwal (Otomatis):"), gbc);
+        // gbc.gridx = 1;
+        // inputPanel.add(tfIdJadwal, gbc);
         tfIdJadwal.setEditable(false);
 
         gbc.gridx = 0;

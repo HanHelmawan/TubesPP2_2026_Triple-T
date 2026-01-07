@@ -28,12 +28,11 @@ public class SiswaPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // ID Siswa
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        inputPanel.add(new JLabel("ID Siswa (Auto):"), gbc);
-        gbc.gridx = 1;
-        inputPanel.add(txtIdSiswa, gbc);
+        // ID Siswa - Hidden from view, but kept in code for Update/Delete logic
+        // gbc.gridx = 0; gbc.gridy = 0;
+        // inputPanel.add(new JLabel("ID Siswa (Auto):"), gbc);
+        // gbc.gridx = 1;
+        // inputPanel.add(txtIdSiswa, gbc);
         txtIdSiswa.setEditable(false);
 
         // Nama

@@ -1,303 +1,141 @@
 package util;
 
-import com.itextpdf.kernel.colors.ColorConstants;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Cell;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.UnitValue;
 import model.JadwalModel;
 import model.PengajarModel;
 import model.SiswaModel;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
+import java.awt.print.PrinterException;
+import java.text.MessageFormat;
 import java.util.List;
 
-/*
-*
- * @author raiha
+/**
+ * Utility class for exporting data using native Java Printing API via HTML.
+ * This method is more robust for generating reports than printing an invisible
+ * JTable.
  */
 public class PDFExport {
 
-    /**
-     * Export data siswa ke PDF
-     * 
-     * @param listSiswa List data siswa
-     * @param filename Nama file output
-     */
     public static void exportSiswaToPdf(List<SiswaModel> listSiswa, String filename) {
         if (listSiswa == null || listSiswa.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Tidak ada data siswa untuk diekspor.");
             return;
         }
 
+        StringBuilder html = startHtml("Laporan Data Siswa");
+        html.append("<tr>")
+                .append("<th>ID</th><th>Nama</th><th>Sekolah</th><th>Kelas</th><th>Telepon</th><th>Alamat</th><th>Status</th>")
+                .append("</tr>");
 
-        File file = new File(filename);
-        if (!file.isAbsolute()) {
-            // Jika hanya nama file, simpan di direktori project
-            file = new File(System.getProperty("user.dir"), filename);
+        for (SiswaModel s : listSiswa) {
+            html.append("<tr>");
+            html.append("<td>").append(s.getIdSiswa()).append("</td>");
+            html.append("<td>").append(safe(s.getNama())).append("</td>");
+            html.append("<td>").append(safe(s.getSekolah())).append("</td>");
+            html.append("<td>").append(safe(s.getKelas())).append("</td>");
+            html.append("<td>").append(safe(s.getTelepon())).append("</td>");
+            html.append("<td>").append(safe(s.getAlamat())).append("</td>");
+            html.append("<td>").append(safe(s.getStatus())).append("</td>");
+            html.append("</tr>");
         }
-        
-        try (PdfWriter writer = new PdfWriter(file);
-             PdfDocument pdf = new PdfDocument(writer);
-             Document document = new Document(pdf)) {
 
-            // Judul
-            Paragraph title = new Paragraph("LAPORAN DATA SISWA")
-                    .setFontSize(18)
-                    .setBold()
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(20);
-            document.add(title);
-
-            // Membuat tabel dengan 7 kolom
-            Table table = new Table(UnitValue.createPercentArray(new float[]{1, 3, 3, 2, 2, 3, 2}))
-                    .useAllAvailableWidth();
-
-            // Header tabel
-            String[] headers = {"ID", "Nama", "Sekolah", "Kelas", "Telepon", "Alamat", "Status"};
-            for (String header : headers) {
-                Cell headerCell = new Cell()
-                        .add(new Paragraph(header))
-                        .setBackgroundColor(ColorConstants.LIGHT_GRAY)
-                        .setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setPadding(8);
-                table.addHeaderCell(headerCell);
-            }
-
-            // Data siswa
-            for (SiswaModel siswa : listSiswa) {
-                table.addCell(createCell(String.valueOf(siswa.getIdSiswa())));
-                table.addCell(createCell(siswa.getNama() != null ? siswa.getNama() : ""));
-                table.addCell(createCell(siswa.getSekolah() != null ? siswa.getSekolah() : ""));
-                table.addCell(createCell(siswa.getKelas() != null ? siswa.getKelas() : ""));
-                table.addCell(createCell(siswa.getTelepon() != null ? siswa.getTelepon() : ""));
-                table.addCell(createCell(siswa.getAlamat() != null ? siswa.getAlamat() : ""));
-                table.addCell(createCell(siswa.getStatus() != null ? siswa.getStatus() : ""));
-            }
-
-            document.add(table);
-
-            // Footer
-            Paragraph footer = new Paragraph("Total Data: " + listSiswa.size())
-                    .setFontSize(10)
-                    .setTextAlignment(TextAlignment.RIGHT)
-                    .setMarginTop(10);
-            document.add(footer);
-
-            JOptionPane.showMessageDialog(null, 
-                "Data siswa berhasil diekspor!\n\n" +
-                "Lokasi file: " + file.getAbsolutePath() + "\n" +
-                "Total data: " + listSiswa.size() + " siswa");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Gagal membuat file PDF: " + e.getMessage());
-        } catch (NoClassDefFoundError e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error: Library iTextPDF tidak ditemukan!\n" +
-                "Pastikan dependency iTextPDF 7.2.5 sudah ditambahkan ke project.\n" +
-                "Detail: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error saat export PDF: " + e.getMessage() + "\n" +
-                "Pastikan library iTextPDF sudah terinstall dengan benar.");
-        }
+        endHtml(html);
+        printHtml(html.toString());
     }
 
-    /**
-     * Export data pengajar ke PDF
-     * 
-     * @param listPengajar List data pengajar
-     * @param filename Nama file output
-     */
     public static void exportPengajarToPdf(List<PengajarModel> listPengajar, String filename) {
         if (listPengajar == null || listPengajar.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Tidak ada data pengajar untuk diekspor.");
             return;
         }
 
-        // Jika filename tidak ada path, gunakan dialog untuk memilih lokasi
-        File file = new File(filename);
-        if (!file.isAbsolute()) {
-            // Jika hanya nama file, simpan di direktori project
-            file = new File(System.getProperty("user.dir"), filename);
+        StringBuilder html = startHtml("Laporan Data Pengajar");
+        html.append("<tr>")
+                .append("<th>ID</th><th>Nama</th><th>Spesialisasi</th><th>Telepon</th><th>Alamat</th>")
+                .append("</tr>");
+
+        for (PengajarModel p : listPengajar) {
+            html.append("<tr>");
+            html.append("<td>").append(safe(p.getIdPengajar())).append("</td>");
+            html.append("<td>").append(safe(p.getNama())).append("</td>");
+            html.append("<td>").append(safe(p.getSpesialisasi())).append("</td>");
+            html.append("<td>").append(safe(p.getNoTelepon())).append("</td>");
+            html.append("<td>").append(safe(p.getAlamat())).append("</td>");
+            html.append("</tr>");
         }
-        
-        try (PdfWriter writer = new PdfWriter(file);
-             PdfDocument pdf = new PdfDocument(writer);
-             Document document = new Document(pdf)) {
 
-            // Judul
-            Paragraph title = new Paragraph("LAPORAN DATA PENGAJAR")
-                    .setFontSize(18)
-                    .setBold()
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(20);
-            document.add(title);
-
-            // Membuat tabel dengan 5 kolom
-            Table table = new Table(UnitValue.createPercentArray(new float[]{1, 3, 3, 2, 3}))
-                    .useAllAvailableWidth();
-
-            // Header tabel
-            String[] headers = {"ID Pengajar", "Nama", "Spesialisasi", "No Telepon", "Alamat"};
-            for (String header : headers) {
-                Cell headerCell = new Cell()
-                        .add(new Paragraph(header))
-                        .setBackgroundColor(ColorConstants.LIGHT_GRAY)
-                        .setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setPadding(8);
-                table.addHeaderCell(headerCell);
-            }
-
-            // Data pengajar
-            for (PengajarModel pengajar : listPengajar) {
-                table.addCell(createCell(pengajar.getIdPengajar() != null ? pengajar.getIdPengajar() : ""));
-                table.addCell(createCell(pengajar.getNama() != null ? pengajar.getNama() : ""));
-                table.addCell(createCell(pengajar.getSpesialisasi() != null ? pengajar.getSpesialisasi() : ""));
-                table.addCell(createCell(pengajar.getNoTelepon() != null ? pengajar.getNoTelepon() : ""));
-                table.addCell(createCell(pengajar.getAlamat() != null ? pengajar.getAlamat() : ""));
-            }
-
-            document.add(table);
-
-            // Footer
-            Paragraph footer = new Paragraph("Total Data: " + listPengajar.size())
-                    .setFontSize(10)
-                    .setTextAlignment(TextAlignment.RIGHT)
-                    .setMarginTop(10);
-            document.add(footer);
-
-            JOptionPane.showMessageDialog(null, 
-                "Data pengajar berhasil diekspor!\n\n" +
-                "Lokasi file: " + file.getAbsolutePath() + "\n" +
-                "Total data: " + listPengajar.size() + " pengajar");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Gagal membuat file PDF: " + e.getMessage());
-        } catch (NoClassDefFoundError e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error: Library iTextPDF tidak ditemukan!\n" +
-                "Pastikan dependency iTextPDF 7.2.5 sudah ditambahkan ke project.\n" +
-                "Detail: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error saat export PDF: " + e.getMessage() + "\n" +
-                "Pastikan library iTextPDF sudah terinstall dengan benar.");
-        }
+        endHtml(html);
+        printHtml(html.toString());
     }
 
-    /**
-     * Export data jadwal ke PDF
-     * 
-     * @param listJadwal List data jadwal
-     * @param filename Nama file output
-     */
     public static void exportJadwalToPdf(List<JadwalModel> listJadwal, String filename) {
         if (listJadwal == null || listJadwal.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Tidak ada data jadwal untuk diekspor.");
             return;
         }
 
-        File file = new File(filename);
-        if (!file.isAbsolute()) {
-            // Jika hanya nama file, simpan di direktori project
-            file = new File(System.getProperty("user.dir"), filename);
+        StringBuilder html = startHtml("Laporan Data Jadwal");
+        html.append("<tr>")
+                .append("<th>ID</th><th>Mapel</th><th>Hari</th><th>Jam Mulai</th><th>Jam Selesai</th><th>Ruangan</th><th>ID Pengajar</th>")
+                .append("</tr>");
+
+        for (JadwalModel j : listJadwal) {
+            html.append("<tr>");
+            html.append("<td>").append(j.getIdJadwal()).append("</td>");
+            html.append("<td>").append(safe(j.getMataPelajaran())).append("</td>");
+            html.append("<td>").append(safe(j.getHari())).append("</td>");
+            html.append("<td>").append(safe(j.getJamMulai())).append("</td>");
+            html.append("<td>").append(safe(j.getJamSelesai())).append("</td>");
+            html.append("<td>").append(safe(j.getRuangan())).append("</td>");
+            html.append("<td>").append(j.getIdPengajar()).append("</td>");
+            html.append("</tr>");
         }
-        
-        try (PdfWriter writer = new PdfWriter(file);
-             PdfDocument pdf = new PdfDocument(writer);
-             Document document = new Document(pdf)) {
 
-            // Judul
-            Paragraph title = new Paragraph("LAPORAN JADWAL KELAS")
-                    .setFontSize(18)
-                    .setBold()
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(20);
-            document.add(title);
-
-            // Membuat tabel dengan 7 kolom
-            Table table = new Table(UnitValue.createPercentArray(new float[]{1, 3, 2, 2, 2, 2, 2}))
-                    .useAllAvailableWidth();
-
-            // Header tabel
-            String[] headers = {"ID", "Mata Pelajaran", "Hari", "Jam Mulai", "Jam Selesai", "Ruangan", "ID Pengajar"};
-            for (String header : headers) {
-                Cell headerCell = new Cell()
-                        .add(new Paragraph(header))
-                        .setBackgroundColor(ColorConstants.LIGHT_GRAY)
-                        .setBold()
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setPadding(8);
-                table.addHeaderCell(headerCell);
-            }
-
-            // Data jadwal
-            for (JadwalModel jadwal : listJadwal) {
-                table.addCell(createCell(String.valueOf(jadwal.getIdJadwal())));
-                table.addCell(createCell(jadwal.getMataPelajaran() != null ? jadwal.getMataPelajaran() : ""));
-                table.addCell(createCell(jadwal.getHari() != null ? jadwal.getHari() : ""));
-                table.addCell(createCell(jadwal.getJamMulai() != null ? jadwal.getJamMulai() : ""));
-                table.addCell(createCell(jadwal.getJamSelesai() != null ? jadwal.getJamSelesai() : ""));
-                table.addCell(createCell(jadwal.getRuangan() != null ? jadwal.getRuangan() : ""));
-                table.addCell(createCell(String.valueOf(jadwal.getIdPengajar())));
-            }
-
-            document.add(table);
-
-            // Footer
-            Paragraph footer = new Paragraph("Total Data: " + listJadwal.size())
-                    .setFontSize(10)
-                    .setTextAlignment(TextAlignment.RIGHT)
-                    .setMarginTop(10);
-            document.add(footer);
-
-            JOptionPane.showMessageDialog(null, 
-                "Data jadwal berhasil diekspor!\n\n" +
-                "Lokasi file: " + file.getAbsolutePath() + "\n" +
-                "Total data: " + listJadwal.size() + " jadwal");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Gagal membuat file PDF: " + e.getMessage());
-        } catch (NoClassDefFoundError e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error: Library iTextPDF tidak ditemukan!\n" +
-                "Pastikan dependency iTextPDF 7.2.5 sudah ditambahkan ke project.\n" +
-                "Detail: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error saat export PDF: " + e.getMessage() + "\n" +
-                "Pastikan library iTextPDF sudah terinstall dengan benar.");
-        }
+        endHtml(html);
+        printHtml(html.toString());
     }
 
-    /**
-     * Helper method untuk membuat cell dengan padding dan alignment
-     * 
-     * @param text Teks untuk cell
-     * @return Cell object
-     */
-    private static Cell createCell(String text) {
-        return new Cell()
-                .add(new Paragraph(text != null ? text : ""))
-                .setPadding(5)
-                .setTextAlignment(TextAlignment.LEFT);
+    // --- Helper Methods ---
+
+    private static StringBuilder startHtml(String title) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html><head><style>");
+        sb.append("body { font-family: sans-serif; }");
+        sb.append("table { border-collapse: collapse; width: 100%; }");
+        sb.append("th { background-color: #e0e0e0; border: 1px solid black; padding: 5px; }");
+        sb.append("td { border: 1px solid black; padding: 5px; font-size: 10px; }");
+        sb.append("h2 { text-align: center; }");
+        sb.append("</style></head><body>");
+        sb.append("<h2>").append(title).append("</h2>");
+        sb.append("<table border='1' cellpadding='4' cellspacing='0'>"); // inline attributes for HTML3.2 compatibility
+        return sb;
+    }
+
+    private static void endHtml(StringBuilder sb) {
+        sb.append("</table></body></html>");
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static void printHtml(String htmlContent) {
+        // Run on EDT
+        SwingUtilities.invokeLater(() -> {
+            JTextPane textPane = new JTextPane();
+            textPane.setContentType("text/html");
+            textPane.setText(htmlContent);
+
+            try {
+                // Show print dialog
+                boolean done = textPane.print(new MessageFormat("{0}"), new MessageFormat("Halaman {0}"));
+                if (done) {
+                    JOptionPane.showMessageDialog(null, "Export selesai!");
+                }
+            } catch (PrinterException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Gagal mencetak: " + e.getMessage());
+            }
+        });
     }
 }
