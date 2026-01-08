@@ -5,9 +5,17 @@
     <artifactId>TUBESPP2_2026_TRIPLE-T</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.5.0</version>
+        </dependency>
+        <!-- Dependencies Removed (Native Implementation used) -->
+    </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>24</maven.compiler.release>
-        <exec.mainClass>com.mycompany.tubespp2_2026_triple.t.TUBESPP2_2026_TRIPLET</exec.mainClass>
+        <maven.compiler.release>17</maven.compiler.release>
+        <exec.mainClass>view.MainFrame</exec.mainClass>
     </properties>
 </project>

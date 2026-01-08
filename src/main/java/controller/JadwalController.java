@@ -1,13 +1,183 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
 
-/**
- *
- * @author raiha
- */
+import model.JadwalModel;
+import config.DBConnections;
+import util.PDFExport;
+import javax.swing.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
 public class JadwalController {
-    
+
+    public void tambahJadwal(JadwalModel jadwal) {
+        // Cari ID kosong (gap) atau ID berikutnya
+        int newId = getNextId();
+        jadwal.setIdJadwal(newId);
+
+        String sql = "INSERT INTO jadwal (id_jadwal, mata_pelajaran, hari, jam_mulai, jam_selesai, ruangan, id_pengajar) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBConnections.getConnection(); // Use getConnection()
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, newId);
+            pstmt.setString(2, jadwal.getMataPelajaran());
+            pstmt.setString(3, jadwal.getHari());
+            pstmt.setString(4, jadwal.getJamMulai()); // Assuming String format HH:mm
+            pstmt.setString(5, jadwal.getJamSelesai());
+            pstmt.setString(6, jadwal.getRuangan());
+            pstmt.setInt(7, jadwal.getIdPengajar());
+            pstmt.executeUpdate();
+
+            JOptionPane.showMessageDialog(null, "Data jadwal berhasil ditambahkan.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (!e.getMessage().contains("Koneksi ke Database Gagal")) {
+                JOptionPane.showMessageDialog(null, "Gagal menambahkan jadwal: " + e.getMessage());
+            }
+        }
+    }
+
+    public void updateJadwal(JadwalModel jadwal) {
+        String sql = "UPDATE jadwal SET mata_pelajaran = ?, hari = ?, jam_mulai = ?, jam_selesai = ?, ruangan = ?, id_pengajar = ? WHERE id_jadwal = ?";
+        try (Connection conn = DBConnections.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, jadwal.getMataPelajaran());
+            pstmt.setString(2, jadwal.getHari());
+            pstmt.setString(3, jadwal.getJamMulai());
+            pstmt.setString(4, jadwal.getJamSelesai());
+            pstmt.setString(5, jadwal.getRuangan());
+            pstmt.setInt(6, jadwal.getIdPengajar());
+            pstmt.setInt(7, jadwal.getIdJadwal());
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(null, "Data jadwal berhasil diupdate.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (!e.getMessage().contains("Koneksi ke Database Gagal")) {
+                JOptionPane.showMessageDialog(null, "Gagal mengupdate jadwal: " + e.getMessage());
+            }
+        }
+    }
+
+    public void deleteJadwal(int idJadwal) {
+        String sql = "DELETE FROM jadwal WHERE id_jadwal = ?";
+        try (Connection conn = DBConnections.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idJadwal);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                JOptionPane.showMessageDialog(null, "Data jadwal berhasil dihapus.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Data jadwal dengan ID tersebut tidak ditemukan.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (!e.getMessage().contains("Koneksi ke Database Gagal")) {
+                JOptionPane.showMessageDialog(null, "Gagal menghapus jadwal: " + e.getMessage());
+            }
+        }
+    }
+
+    public List<JadwalModel> getAllJadwal() {
+        List<JadwalModel> list = new ArrayList<>();
+        String sql = "SELECT * FROM jadwal";
+
+        try (Connection conn = DBConnections.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                // Adjust per database schema
+                list.add(new JadwalModel(
+                        rs.getInt("id_jadwal"),
+                        rs.getString("mata_pelajaran"),
+                        rs.getString("hari"),
+                        rs.getString("jam_mulai"), // Assuming stored as String/Time converted to String
+                        rs.getString("jam_selesai"),
+                        rs.getString("ruangan"),
+                        rs.getInt("id_pengajar")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (!e.getMessage().contains("Koneksi ke Database Gagal")) {
+                JOptionPane.showMessageDialog(null, "Gagal mengambil jadwal: " + e.getMessage());
+            }
+        }
+        return list;
+    }
+
+    public java.util.List<JadwalModel> searchJadwal(String keyword) {
+        java.util.List<JadwalModel> list = new java.util.ArrayList<>();
+        // Note: For simplicity searching by 'mata_pelajaran'
+        String sql = "SELECT * FROM jadwal WHERE mata_pelajaran LIKE ?";
+        try (java.sql.Connection conn = config.DBConnections.getConnection();
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + keyword + "%");
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    JadwalModel j = new JadwalModel(
+                            rs.getString("mata_pelajaran"),
+                            rs.getString("hari"),
+                            rs.getString("jam_mulai"),
+                            rs.getString("jam_selesai"),
+                            rs.getString("ruangan"),
+                            rs.getInt("id_pengajar"));
+                    j.setIdJadwal(rs.getInt("id_jadwal"));
+                    list.add(j);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public Object[][] getTableData() {
+        List<JadwalModel> list = getAllJadwal();
+        Object[][] data = new Object[list.size()][7];
+        for (int i = 0; i < list.size(); i++) {
+            JadwalModel j = list.get(i);
+            data[i][0] = j.getIdJadwal();
+            data[i][1] = j.getMataPelajaran();
+            data[i][2] = j.getHari();
+            data[i][3] = j.getJamMulai();
+            data[i][4] = j.getJamSelesai();
+            data[i][5] = j.getRuangan();
+            data[i][6] = j.getIdPengajar();
+        }
+        return data;
+    }
+
+    public void exportToPdf() {
+        try {
+            List<JadwalModel> list = getAllJadwal();
+            if (list == null || list.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Tidak ada data jadwal untuk diekspor.");
+                return;
+            }
+            String filename = "Laporan_Jadwal_" + System.currentTimeMillis() + ".pdf";
+            PDFExport.exportJadwalToPdf(list, filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal melakukan export PDF: " + e.getMessage());
+        }
+    }
+
+    // Method untuk mendapatkan ID Kosong (Gap) berikutnya
+    public int getNextId() {
+        String sql = "SELECT id_jadwal FROM jadwal ORDER BY id_jadwal ASC";
+        try (Connection conn = DBConnections.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            int expectedId = 1;
+            while (rs.next()) {
+                int currentId = rs.getInt("id_jadwal");
+                if (currentId != expectedId) {
+                    return expectedId; // Menemukan celah
+                }
+                expectedId++;
+            }
+            return expectedId; // Tidak ada celah
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1; // Default jika tabel kosong
+    }
 }
